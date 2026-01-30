@@ -17,24 +17,47 @@ function App() {
     diversify: false,
   });
   const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState(null);
   const [activeTab, setActiveTab] = useState("search");
 
-  const API_BASE = "http://localhost:3000/api/v1";
+  const API_BASE = import.meta.env.VITE_API_BASE || "/api/v1";
 
   // Fetch catalog statistics
   useEffect(() => {
     fetchStats();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === "stats") {
+      fetchStats();
+    }
+  }, [activeTab]);
+
   const fetchStats = async () => {
+    setStatsLoading(true);
+    setStatsError(null);
     try {
       const response = await fetch(`${API_BASE}/search/stats`);
       const data = await response.json();
+
+      if (!response.ok) {
+        setStatsError(data.message || "Failed to load catalog stats");
+        setStats(null);
+        return;
+      }
+
       if (data.success) {
         setStats(data.stats);
+      } else {
+        setStatsError(data.message || "Catalog stats unavailable");
+        setStats(null);
       }
     } catch (err) {
-      console.error("Failed to fetch stats:", err);
+      setStatsError("Failed to fetch stats: " + err.message);
+      setStats(null);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -284,53 +307,69 @@ function App() {
         </main>
       )}
 
-      {activeTab === "stats" && stats && (
+      {activeTab === "stats" && (
         <main className="main-content">
           <section className="stats-section">
             <h2>Catalog Statistics</h2>
 
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>{stats.totalProducts}</h3>
-                <p>Total Products</p>
-              </div>
-              <div className="stat-card">
-                <h3>{stats.totalCategories}</h3>
-                <p>Categories</p>
-              </div>
-              <div className="stat-card">
-                <h3>{stats.totalBrands}</h3>
-                <p>Brands</p>
-              </div>
-              <div className="stat-card">
-                <h3>{stats.avgRating}/5</h3>
-                <p>Average Rating</p>
-              </div>
-              <div className="stat-card">
-                <h3>{stats.inStockProducts}</h3>
-                <p>In Stock Items</p>
-              </div>
-              <div className="stat-card">
-                <h3>₹{(stats.totalValue / 10000000).toFixed(1)}Cr</h3>
-                <p>Total Inventory Value</p>
-              </div>
-            </div>
+            {statsLoading && (
+              <div className="error-message">Loading stats...</div>
+            )}
 
-            <div className="details">
-              <h3>Categories</h3>
-              <ul className="category-list">
-                {stats.categories?.map((cat) => (
-                  <li key={cat}>{cat}</li>
-                ))}
-              </ul>
+            {statsError && <div className="error-message">⚠️ {statsError}</div>}
 
-              <h3>Top Brands</h3>
-              <ul className="brand-list">
-                {stats.brands?.slice(0, 10).map((brand) => (
-                  <li key={brand}>{brand}</li>
-                ))}
-              </ul>
-            </div>
+            {stats && (
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <h3>{stats.totalProducts ?? "-"}</h3>
+                  <p>Total Products</p>
+                </div>
+                <div className="stat-card">
+                  <h3>{stats.totalCategories ?? "-"}</h3>
+                  <p>Categories</p>
+                </div>
+                <div className="stat-card">
+                  <h3>{stats.totalBrands ?? "-"}</h3>
+                  <p>Brands</p>
+                </div>
+                <div className="stat-card">
+                  <h3>{stats.avgRating ?? "-"}/5</h3>
+                  <p>Average Rating</p>
+                </div>
+                <div className="stat-card">
+                  <h3>{stats.inStockProducts ?? "-"}</h3>
+                  <p>In Stock Items</p>
+                </div>
+                <div className="stat-card">
+                  <h3>
+                    ₹
+                    {typeof stats.totalValue === "number"
+                      ? (stats.totalValue / 10000000).toFixed(1)
+                      : "-"}
+                    Cr
+                  </h3>
+                  <p>Total Inventory Value</p>
+                </div>
+              </div>
+            )}
+
+            {stats && (
+              <div className="details">
+                <h3>Categories</h3>
+                <ul className="category-list">
+                  {stats.categories?.map((cat) => (
+                    <li key={cat}>{cat}</li>
+                  ))}
+                </ul>
+
+                <h3>Top Brands</h3>
+                <ul className="brand-list">
+                  {stats.brands?.slice(0, 10).map((brand) => (
+                    <li key={brand}>{brand}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
         </main>
       )}

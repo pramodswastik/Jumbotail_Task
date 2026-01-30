@@ -23,4 +23,4 @@ Below is a professional, human-readable record of the requests you made during t
 15. Fix the catalog stats screen so data reliably appears.
 16. Add loading and error states for the stats view.
 17. Update documentation to match the current UI and feature set.
-18. Add a concise, professional chat history file to the project.
+
