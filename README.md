@@ -358,8 +358,8 @@ Edit `services/RankingService.js`:
 
 Edit `frontend/App.css`:
 
-- Primary color: #667eea (purple blue)
-- Secondary color: #764ba2 (dark purple)
+- Primary color: #2f855a (soothing green)
+- Secondary color: #68d391 (soft mint green)
 - Neutral: #f5f5f5 to #333 (grays)
 
 ## 🐛 Troubleshooting
