@@ -11,6 +11,9 @@ const cors = require('cors');
 const productRoutes = require('./routes/productRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 
+// Import data initializer
+const { initializeProductStore } = require('./services/DataInitializer');
+
 // Initialize express app
 const app = express();
 
@@ -58,6 +61,11 @@ app.listen(PORT, () => {
   console.log(`🚀 E-commerce Search Engine Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  
+  // Initialize product store with sample data
+  console.log('\n📦 Initializing product catalog...');
+  initializeProductStore();
+  console.log('\n✅ Server ready to handle requests!\n');
 });
 
 module.exports = app;
