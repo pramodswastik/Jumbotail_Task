@@ -47,24 +47,27 @@ Jumbotail_Task/
 ### Add a New API Endpoint
 
 1. **Create route handler**
+
 ```javascript
 // routes/productRoutes.js
-app.post('/api/v1/custom', (req, res) => {
+app.post("/api/v1/custom", (req, res) => {
   // Implementation
   res.json({ success: true });
 });
 ```
 
 2. **Add validation** (if needed)
+
 ```javascript
 // middleware/ValidationMiddleware.js
 function validateCustomInput(data) {
-  if (!data.name) throw new Error('Name required');
+  if (!data.name) throw new Error("Name required");
   // More validation
 }
 ```
 
 3. **Test it**
+
 ```bash
 curl -X POST http://localhost:3000/api/v1/custom
 ```
@@ -72,18 +75,20 @@ curl -X POST http://localhost:3000/api/v1/custom
 ### Modify Search Algorithm
 
 1. **Edit RankingService.js**
+
 ```javascript
 // Change factor weights
 const FACTORS = {
-  relevance: 0.40,    // 40%
-  popularity: 0.25,   // 25%
-  quality: 0.20,      // 20%
-  value: 0.10,        // 10%
-  recency: 0.05       // 5%
+  relevance: 0.4, // 40%
+  popularity: 0.25, // 25%
+  quality: 0.2, // 20%
+  value: 0.1, // 10%
+  recency: 0.05, // 5%
 };
 ```
 
 2. **Test with various queries**
+
 ```bash
 curl "http://localhost:3000/api/v1/search/product?query=budget%20laptop"
 ```
@@ -91,11 +96,12 @@ curl "http://localhost:3000/api/v1/search/product?query=budget%20laptop"
 ### Add Product Categories
 
 1. **Update ProductDataGenerator.js**
+
 ```javascript
 const categories = [
-  'Mobile Phones',
-  'Laptops',
-  'Gaming Consoles'  // Add new
+  "Mobile Phones",
+  "Laptops",
+  "Gaming Consoles", // Add new
 ];
 ```
 
@@ -141,12 +147,12 @@ curl "http://localhost:3000/api/v1/search/stats"
 
 ## 📊 Code Statistics
 
-| Component | Lines | Status |
-|-----------|-------|--------|
-| Backend | 2,500+ | ✅ Done |
-| Frontend | 1,200+ | ✅ Done |
-| Tests | 14 cases | ✅ Done |
-| Docs | 500+ | 🔄 In Progress |
+| Component | Lines    | Status         |
+| --------- | -------- | -------------- |
+| Backend   | 2,500+   | ✅ Done        |
+| Frontend  | 1,200+   | ✅ Done        |
+| Tests     | 14 cases | ✅ Done        |
+| Docs      | 500+     | 🔄 In Progress |
 
 ---
 
@@ -174,12 +180,15 @@ tail -f logs/app.log
 ### Common Errors
 
 **"Cannot find module"**
+
 - Solution: `npm install`
 
 **"Port 3000 already in use"**
+
 - Solution: Kill process on port 3000
 
 **"CORS error in frontend"**
+
 - Solution: Check backend CORS config
 
 ---
@@ -187,22 +196,27 @@ tail -f logs/app.log
 ## 📚 Key Files Reference
 
 ### Models
+
 - `Product.js` - Entity definition with methods
 - `ProductStore.js` - Database operations
 
 ### Services
+
 - `ProductService.js` - Business logic
 - `RankingService.js` - Ranking algorithms
 - `ProductDataGenerator.js` - Data generation
 
 ### Routes
+
 - `productRoutes.js` - Product CRUD APIs
 - `searchRoutes.js` - Search and stats APIs
 
 ### Utilities
+
 - `searchUtils.js` - Helper functions for search
 
 ### Frontend
+
 - `App.jsx` - Main React component
 - `App.css` - Styling
 
