@@ -37,8 +37,8 @@ This microservice handles product cataloging, metadata management, and intellige
 ## 📋 Development Phases
 
 1. **Phase 1**: Project setup and Express server ✅
-2. **Phase 2**: Data models and in-memory storage
-3. **Phase 3**: Scrape/generate product data
+2. **Phase 2**: Data models and in-memory storage ✅
+3. **Phase 3**: Scrape/generate product data ✅
 4. **Phase 4**: POST /api/v1/product API
 5. **Phase 5**: PUT /api/v1/product/meta-data API
 6. **Phase 6**: Basic search API implementation
@@ -46,6 +46,29 @@ This microservice handles product cataloging, metadata management, and intellige
 8. **Phase 8**: Error handling and validation
 9. **Phase 9**: React frontend for testing
 10. **Phase 10**: Final polish and documentation
+
+## 📊 Catalog Overview
+
+**Total Products**: 278+ auto-generated products
+
+**Categories**: 6
+
+- Mobile Phones (120 products) - iPhones, Samsung Galaxy, Xiaomi Redmi
+- Laptops (33 products) - MacBook, Dell XPS, Lenovo ThinkPad, HP, ASUS
+- Headphones (27 products) - Sony, Apple, JBL, Bose, Sennheiser
+- Phone Accessories (60 products) - Cases, Chargers, Screen Protectors
+- Tablets (18 products) - iPad, Galaxy Tab, Lenovo Tab
+- Smart Watches (20 products) - Apple Watch, Galaxy Watch, Garmin, Fitbit
+
+**Price Range**: ₹399 - ₹249,999
+
+**Data Features**:
+
+- Realistic ratings (3.5-5.0 stars)
+- Stock levels and availability
+- Sales history and popularity
+- Return rates and complaint data
+- Rich metadata (specs, colors, storage variations)
 
 ## 🚀 Getting Started
 
