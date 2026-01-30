@@ -11,6 +11,17 @@ const cors = require('cors');
 const productRoutes = require('./routes/productRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 
+// Import middleware
+const {
+  validateProductInput,
+  validateSearchInput,
+  RateLimiter,
+  errorHandler,
+  notFoundHandler,
+  requestLogger,
+  securityHeaders
+} = require('./middleware/ValidationMiddleware');
+
 // Import data initializer
 const { initializeProductStore } = require('./services/DataInitializer');
 
@@ -22,11 +33,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
+// Security headers
+app.use(securityHeaders);
+
+// Request logging
+app.use(requestLogger);
+
+// Rate limiting
+const rateLimiter = new RateLimiter(100, 60000); // 100 requests per minute
+app.use(rateLimiter.middleware());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -34,26 +49,14 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/v1/product', productRoutes);
-app.use('/api/v1/search', searchRoutes);
+app.use('/api/v1/product', validateProductInput, productRoutes);
+app.use('/api/v1/search', validateSearchInput, searchRoutes);
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `The endpoint ${req.method} ${req.path} does not exist`,
-    timestamp: new Date().toISOString()
-  });
-});
+app.use(notFoundHandler);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    timestamp: new Date().toISOString()
-  });
-});
+// Error handling middleware (MUST be last)
+app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 3000;

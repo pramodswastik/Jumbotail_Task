@@ -1,22 +1,22 @@
 /**
  * Search Routes
- * Handles product search and ranking
+ * Handles product search and advanced ranking
  */
 
 const express = require('express');
 const router = express.Router();
 const productStore = require('../models/ProductStore');
+const { RankingService } = require('../services/RankingService');
 const {
   extractKeywords,
   extractPriceFromQuery,
   detectQueryIntent,
-  calculateRelevanceScore,
   textMatches
 } = require('../utils/searchUtils');
 
 /**
  * GET /api/v1/search/product
- * Search products with intelligent ranking
+ * Search products with advanced ranking algorithms
  * 
  * Query params:
  * - query: Search query (required)
@@ -24,10 +24,20 @@ const {
  * - offset: Pagination offset (default: 0)
  * - sortBy: Sort field (relevance, price, rating, sales) (default: relevance)
  * - order: Sort order (asc, desc) (default: desc)
+ * - algorithm: Ranking algorithm (comprehensive, bm25) (default: comprehensive)
+ * - diversify: Get diversified results (true/false) (default: false)
  */
 router.get('/product', (req, res) => {
   try {
-    const { query, limit = 20, offset = 0, sortBy = 'relevance', order = 'desc' } = req.query;
+    const { 
+      query, 
+      limit = 20, 
+      offset = 0, 
+      sortBy = 'relevance', 
+      order = 'desc',
+      algorithm = 'comprehensive',
+      diversify = false 
+    } = req.query;
 
     // Validate query
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
@@ -56,64 +66,89 @@ router.get('/product', (req, res) => {
       return titleMatch || descriptionMatch || keywordMatch;
     });
 
-    // Calculate relevance scores for each result
-    results = results.map(product => ({
-      product,
-      relevanceScore: calculateRelevanceScore(product, searchQuery)
-    }));
+    if (results.length === 0) {
+      return res.status(200).json({
+        success: true,
+        query: searchQuery,
+        detectedIntent: detectQueryIntent(searchQuery),
+        totalResults: 0,
+        returnedResults: 0,
+        data: [],
+        message: 'No products found matching your search',
+        timestamp: new Date().toISOString()
+      });
+    }
 
-    // Filter out low relevance results (optional)
-    results = results.filter(r => r.relevanceScore > 10);
+    // Detect query intent and extract price range
+    const queryIntent = detectQueryIntent(searchQuery);
+    const priceRange = extractPriceFromQuery(searchQuery);
 
-    // Apply sorting
-    const sortFunctions = {
-      relevance: (a, b) => {
-        return order === 'desc' 
-          ? b.relevanceScore - a.relevanceScore 
-          : a.relevanceScore - b.relevanceScore;
-      },
-      price: (a, b) => {
-        return order === 'desc'
-          ? b.product.price - a.product.price
-          : a.product.price - b.product.price;
-      },
-      rating: (a, b) => {
-        return order === 'desc'
-          ? b.product.rating - a.product.rating
-          : a.product.rating - b.product.rating;
-      },
-      sales: (a, b) => {
-        return order === 'desc'
-          ? b.product.salesCount - a.product.salesCount
-          : a.product.salesCount - b.product.salesCount;
+    // Apply advanced ranking
+    const rankedResults = RankingService.rankProducts(
+      results,
+      searchQuery,
+      queryIntent,
+      algorithm
+    );
+
+    // Apply diversification if requested
+    let finalResults = diversify === 'true' 
+      ? RankingService.getDiversifiedResults(rankedResults, limitNum)
+      : rankedResults;
+
+    // Apply sorting if not using relevance
+    if (sortBy !== 'relevance') {
+      const sortFunctions = {
+        price: (a, b) => {
+          return order === 'desc'
+            ? b.product.price - a.product.price
+            : a.product.price - b.product.price;
+        },
+        rating: (a, b) => {
+          return order === 'desc'
+            ? b.product.rating - a.product.rating
+            : a.product.rating - b.product.rating;
+        },
+        sales: (a, b) => {
+          return order === 'desc'
+            ? b.product.salesCount - a.product.salesCount
+            : a.product.salesCount - b.product.salesCount;
+        }
+      };
+
+      const sortFunc = sortFunctions[sortBy];
+      if (sortFunc) {
+        finalResults.sort(sortFunc);
       }
-    };
-
-    const sortFunc = sortFunctions[sortBy] || sortFunctions.relevance;
-    results.sort(sortFunc);
+    }
 
     // Pagination
-    const totalCount = results.length;
-    results = results.slice(offsetNum, offsetNum + limitNum);
-
-    // Extract metadata
-    const detectedIntent = detectQueryIntent(searchQuery);
-    const priceRange = extractPriceFromQuery(searchQuery);
+    const totalCount = finalResults.length;
+    finalResults = finalResults.slice(offsetNum, offsetNum + limitNum);
 
     res.status(200).json({
       success: true,
       query: searchQuery,
-      detectedIntent,
+      detectedIntent: queryIntent,
       priceRange,
+      rankingAlgorithm: algorithm,
+      diversified: diversify === 'true',
       totalResults: totalCount,
-      returnedResults: results.length,
+      returnedResults: finalResults.length,
       pagination: {
         limit: limitNum,
         offset: offsetNum
       },
-      data: results.map(r => ({
+      data: finalResults.map(r => ({
         ...r.product.toJSON(),
-        relevanceScore: r.relevanceScore.toFixed(2)
+        score: parseFloat(r.score).toFixed(2),
+        ranking: {
+          relevance: parseFloat(r.ranking.relevance).toFixed(2),
+          popularity: parseFloat(r.ranking.popularity).toFixed(2),
+          quality: parseFloat(r.ranking.quality).toFixed(2),
+          value: parseFloat(r.ranking.value).toFixed(2),
+          recency: parseFloat(r.ranking.recency).toFixed(2)
+        }
       })),
       timestamp: new Date().toISOString()
     });
