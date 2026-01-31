@@ -463,7 +463,7 @@ This project demonstrates:
 
 ---
 
-**Created by:** Pramod Kumar  
+**Created by:** Swastik Pramod Sharma  
 **Repository:** https://github.com/pramodswastik/Jumbotail_Task  
 **Status:** 90% Complete (Phases 1-9 Done)  
 **Last Updated:** Phase 9 Completion
